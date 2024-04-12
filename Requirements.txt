@@ -1,0 +1,17 @@
+gower
+kmodes
+kneebow
+logging
+math
+matplotlib
+minisom
+numpy
+pandas
+pyclustering
+scikit-learn
+scipy
+seaborn
+time
+torch
+utils
+wget 
