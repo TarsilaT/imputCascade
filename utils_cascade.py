@@ -10,7 +10,7 @@ import pandas as pd
 import math as math
 import matplotlib as plt
 import matplotlib.pyplot as plt
-#import seaborn as sns
+import seaborn as sns
 import gower
 import torch
 import logging
@@ -1005,10 +1005,10 @@ def agglomerative_cluster(df, n_clusters, affinity, linkage):
 
     if affinity == "precomputed":
         gower_dist = gover_distance(df)        # calculate the Gower's distance
-        agg_cluster = AgglomerativeClustering(n_clusters = n_clusters, metric='precomputed', linkage=linkage)
+        agg_cluster = AgglomerativeClustering(n_clusters = n_clusters, affinity='precomputed', linkage=linkage)
         labels = agg_cluster.fit_predict(gower_dist)
     else:
-        agg_cluster = AgglomerativeClustering(n_clusters = n_clusters, metric=affinity, linkage=linkage)
+        agg_cluster = AgglomerativeClustering(n_clusters = n_clusters, affinity=affinity, linkage=linkage)
         labels = agg_cluster.fit_predict(df)
 
     return labels
@@ -1218,6 +1218,14 @@ def cascade_imputation(df_filled, df_null, df_mask, ordered_clu_list, ordered_co
             #Step 2: Split subset by cluster and find the average of each attribute per cluster (Running the cluster algorithm)
             start_time2 = time.time()                                  # Inicializar a contagem do tempo etapa 2
             aux_knn = df_cluster.drop(columns=[attribute])
+            n_samples = len(aux_knn)
+            #print("n_samples:", n_samples)
+
+            # Reduz o número de vizinhos, se necessário
+            if knn_neighbors > n_samples:
+                knn_neighbors = n_samples
+            #print("knn_neighbors:", knn_neighbors)
+            
             distances_, indices = knn(aux_knn, n_neighbors=knn_neighbors, metric=knn_metric)
             
             time_seg2 = measure_execution_time_seg(start_time2)    # Finalizar a contagem do tempo (etapa 2)
@@ -1384,9 +1392,9 @@ def cascade_imputation_with_params(df_incompleto, params):
     elif cluster_algorithm == "dbscan": 
         labels = morphology_absence(df_mask, cluster_algorithm="dbscan", eps=float(eps_dbscan), min_samples=int(min_samples_dbscan) , metric=metric_dbscan)  
     elif cluster_algorithm == "agglomerative_cluster" and affinity_aggcl == "precomputed": 
-        labels = morphology_absence(df_mask, cluster_algorithm="agglomerative_cluster", n_clusters=int(n_clusters_aggcl), metric="precomputed", linkage='complete')
+        labels = morphology_absence(df_mask, cluster_algorithm="agglomerative_cluster", n_clusters=int(n_clusters_aggcl), affinity="precomputed", linkage='complete')
     elif cluster_algorithm == "agglomerative_cluster" and affinity_aggcl != "precomputed":
-        labels = morphology_absence(df_mask, cluster_algorithm="agglomerative_cluster", n_clusters=int(n_clusters_aggcl), metric="euclidean", linkage='ward')    
+        labels = morphology_absence(df_mask, cluster_algorithm="agglomerative_cluster", n_clusters=int(n_clusters_aggcl), affinity="euclidean", linkage='ward')    
     elif cluster_algorithm == "som":
         labels = morphology_absence(df_mask, cluster_algorithm="som", dim_x=int(dim_x_som), dim_y=int(dim_y_som), sigma=float(sigma_som), lr=float(lr_som), max_iter=int(max_iter_som)) 
     else:
